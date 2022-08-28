@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<Authors>PGGB</Authors>
+		<Authors>Jessidhia, PGGB</Authors>
 		<Company></Company>
-		<Version>1.0.1</Version>
+		<Version>1.0.2</Version>
 		<Description>An FF14-Plugin that stops controller input from freezing randomly</Description>
 		<Copyright></Copyright>
-		<PackageProjectUrl>https://github.com/PGGB/DeviceChangeFix</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/Jessidhia/DeviceChangeFix</PackageProjectUrl>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net5.0-windows</TargetFramework>
+		<TargetFramework>net6.0-windows</TargetFramework>
 		<Platforms>x64</Platforms>
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
@@ -18,7 +18,7 @@
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<OutputPath>$(AppData)\XIVLauncher\devPlugins\DeviceChangeFix\</OutputPath>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -26,17 +26,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="deviceChangeFix.json" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="deviceChangeFix.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="DalamudPackager" Version="2.1.6" />
+		<PackageReference Include="DalamudPackager" Version="2.1.8" />
 		<PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
 		<Reference Include="FFXIVClientStructs">
 			<HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>

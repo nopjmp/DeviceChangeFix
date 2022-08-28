@@ -13,14 +13,14 @@ namespace DeviceChangeFix
         public string Name => "DeviceChangeFix";
 
         private int controllerCount;
-        private DirectInput directInput;
+        private readonly DirectInput directInput = new();
 
         private DalamudPluginInterface PluginInterface { get; init; }
         private Configuration Configuration { get; init; }
         private PluginUI PluginUi { get; init; }
 
         public delegate IntPtr DeviceChangeDelegate(IntPtr inputDeviceManager);
-        private Hook<DeviceChangeDelegate>? deviceChangeDelegateHook;
+        private readonly Hook<DeviceChangeDelegate> deviceChangeDelegateHook;
 
         public Plugin(
             [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
@@ -36,23 +36,13 @@ namespace DeviceChangeFix
             this.PluginInterface.UiBuilder.Draw += DrawUI;
             this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
-            // Find the function that is called when a device change happens
-            var signature = "48 83 EC 38 0F B6 81";
-
-            IntPtr renderAddress;
-
-            if (sigScanner.TryScanText(signature, out renderAddress))
-            {
-                this.deviceChangeDelegateHook = new Hook<DeviceChangeDelegate>(renderAddress, this.DeviceChangeDetour);
-                this.deviceChangeDelegateHook.Enable();
-            }
-            else
-            {
-                PluginLog.Error("Signature could not be found");
-            }
-
-            this.directInput = new DirectInput();
             this.controllerCount = this.GetControllerCount();
+
+            // function that is called from WndProc when a device change happens
+            // plugin can't work without this sig so use ScanText instead of TryScanText
+            var renderAddress = sigScanner.ScanText("48 83 EC 38 0F B6 81");
+            this.deviceChangeDelegateHook = Hook<DeviceChangeDelegate>.FromAddress(renderAddress, this.DeviceChangeDetour);
+            this.deviceChangeDelegateHook.Enable();
         }
 
         private unsafe IntPtr DeviceChangeDetour(IntPtr inputDeviceManager)
@@ -60,53 +50,35 @@ namespace DeviceChangeFix
             if (this.Configuration.BypassLogic == true)
             {
                 PluginLog.Information($"triggered");
-                return this.deviceChangeDelegateHook?.Original(inputDeviceManager) ?? IntPtr.Zero;
+                return this.deviceChangeDelegateHook!.Original(inputDeviceManager);
             }
 
-            var res = IntPtr.Zero;
-
-            // Only call the polling function if the number of controllers
+            // Only call the original if the number of connected controllers
             // actually changed since the last time the hook was called
             int newControllerCount = this.GetControllerCount();
             if (newControllerCount != this.controllerCount)
             {
-                res = this.deviceChangeDelegateHook?.Original(inputDeviceManager) ?? IntPtr.Zero;
-
-                if (newControllerCount > this.controllerCount)
-                {
-                    PluginLog.Information($"{newControllerCount - this.controllerCount} devices added, polling started");
-                }
-                else
-                {
-                    PluginLog.Information($"{this.controllerCount - newControllerCount} devices removed, polling started");
-                }
-
+                PluginLog.Information($"{Math.Abs(newControllerCount - this.controllerCount)} devices {(newControllerCount > this.controllerCount ? "added" : "removed")}, polling started");
                 this.controllerCount = newControllerCount;
-            }
-            else
-            {
-                PluginLog.Information("No input devices changed, polling skipped");
-            }
 
-            return res;
+                return this.deviceChangeDelegateHook!.Original(inputDeviceManager);
+            }
+            PluginLog.Information("No input devices changed, polling skipped");
+
+            return IntPtr.Zero;
         }
 
         private int GetControllerCount()
         {
-            if (this.directInput != null)
-            {
-                return this.directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AllDevices).Count;
-            }
-
-            return 0;
+            return this.directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AllDevices).Count;
         }
 
         public void Dispose()
         {
-            this.directInput.Dispose();
-            this.deviceChangeDelegateHook?.Disable();
-            this.deviceChangeDelegateHook?.Dispose();
+            this.deviceChangeDelegateHook.Disable();
+            this.deviceChangeDelegateHook.Dispose();
             this.PluginUi.Dispose();
+            this.directInput.Dispose();
         }
 
         private void DrawUI()

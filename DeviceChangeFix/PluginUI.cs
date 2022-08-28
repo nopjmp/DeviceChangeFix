@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using System;
 using System.Numerics;
+using Dalamud.Interface;
 
 namespace DeviceChangeFix
 {
@@ -38,7 +39,7 @@ namespace DeviceChangeFix
                 return;
             }
 
-            ImGui.SetNextWindowSize(new Vector2(232, 75), ImGuiCond.Always);
+            ImGui.SetNextWindowSize(ImGuiHelpers.ScaledVector2(10 * ImGui.GetFontSize(), 2 * ImGui.GetFontSize()), ImGuiCond.Always);
             if (ImGui.Begin("DeviceChangeFix Config", ref this.settingsVisible,
                 ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
             {
@@ -47,7 +48,7 @@ namespace DeviceChangeFix
                 if (ImGui.Checkbox("Bypass plugin logic", ref configValue))
                 {
                     this.configuration.BypassLogic = configValue;
-                    // can save immediately on change, if you don't want to provide a "Save and Close" button
+                    // save immediately on change instead of using a "Save and Close" button
                     this.configuration.Save();
                 }
             }
