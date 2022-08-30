@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<Authors>Jessidhia, PGGB</Authors>
 		<Company></Company>
-		<Version>1.0.2</Version>
+		<Version>2.0.1</Version>
 		<Description>An FF14-Plugin that stops controller input from freezing randomly</Description>
 		<Copyright></Copyright>
 		<PackageProjectUrl>https://github.com/Jessidhia/DeviceChangeFix</PackageProjectUrl>
