@@ -15,27 +15,12 @@ namespace DeviceChangeFix
         private int controllerCount;
         private readonly DirectInput directInput = new();
 
-        private DalamudPluginInterface PluginInterface { get; init; }
-        private Configuration Configuration { get; init; }
-        private PluginUI PluginUi { get; init; }
-
         public delegate IntPtr DeviceChangeDelegate(IntPtr inputDeviceManager);
         private readonly Hook<DeviceChangeDelegate> deviceChangeDelegateHook;
 
         public Plugin(
-            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
             [RequiredVersion("1.0")] SigScanner sigScanner)
         {
-            this.PluginInterface = pluginInterface;
-
-            this.Configuration = this.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-            this.Configuration.Initialize(this.PluginInterface);
-
-            this.PluginUi = new PluginUI(this.Configuration);
-
-            this.PluginInterface.UiBuilder.Draw += DrawUI;
-            this.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
-
             this.controllerCount = this.GetControllerCount();
 
             // function that is called from WndProc when a device change happens
@@ -47,12 +32,6 @@ namespace DeviceChangeFix
 
         private unsafe IntPtr DeviceChangeDetour(IntPtr inputDeviceManager)
         {
-            if (this.Configuration.BypassLogic == true)
-            {
-                PluginLog.Information($"triggered");
-                return this.deviceChangeDelegateHook!.Original(inputDeviceManager);
-            }
-
             // Only call the original if the number of connected controllers
             // actually changed since the last time the hook was called
             int newControllerCount = this.GetControllerCount();
@@ -77,18 +56,7 @@ namespace DeviceChangeFix
         {
             this.deviceChangeDelegateHook.Disable();
             this.deviceChangeDelegateHook.Dispose();
-            this.PluginUi.Dispose();
             this.directInput.Dispose();
-        }
-
-        private void DrawUI()
-        {
-            this.PluginUi.Draw();
-        }
-
-        private void DrawConfigUI()
-        {
-            this.PluginUi.SettingsVisible = true;
         }
     }
 }
