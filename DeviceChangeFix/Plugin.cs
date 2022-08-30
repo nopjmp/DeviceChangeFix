@@ -1,10 +1,9 @@
-﻿using Dalamud.Game;
-using Dalamud.Hooking;
-using Dalamud.IoC;
+﻿using Dalamud.Hooking;
 using Dalamud.Logging;
 using Dalamud.Plugin;
-using System;
+using Dalamud.Utility.Signatures;
 using SharpDX.DirectInput;
+using System;
 
 namespace DeviceChangeFix
 {
@@ -15,21 +14,18 @@ namespace DeviceChangeFix
         private int controllerCount;
         private readonly DirectInput directInput = new();
 
-        public delegate IntPtr DeviceChangeDelegate(IntPtr inputDeviceManager);
-        private readonly Hook<DeviceChangeDelegate> deviceChangeDelegateHook;
-
-        public Plugin(
-            [RequiredVersion("1.0")] SigScanner sigScanner)
+        public Plugin()
         {
             this.controllerCount = this.GetControllerCount();
 
-            // function that is called from WndProc when a device change happens
-            // plugin can't work without this sig so use ScanText instead of TryScanText
-            var renderAddress = sigScanner.ScanText("48 83 EC 38 0F B6 81");
-            this.deviceChangeDelegateHook = Hook<DeviceChangeDelegate>.FromAddress(renderAddress, this.DeviceChangeDetour);
+            SignatureHelper.Initialise(this);
             this.deviceChangeDelegateHook.Enable();
         }
 
+        public delegate IntPtr DeviceChangeDelegate(IntPtr inputDeviceManager);
+        // non-nullable, plugin can't work without this signature
+        [Signature("48 83 EC 38 0F B6 81", DetourName = nameof(DeviceChangeDetour))]
+        private readonly Hook<DeviceChangeDelegate> deviceChangeDelegateHook = null!;
         private unsafe IntPtr DeviceChangeDetour(IntPtr inputDeviceManager)
         {
             // Only call the original if the number of connected controllers
