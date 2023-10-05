@@ -3,8 +3,11 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using System;
 using SharpDX.DirectInput;
+using Dalamud.Utility.Signatures;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DeviceChangeFix
 {
@@ -15,36 +18,40 @@ namespace DeviceChangeFix
         private int controllerCount;
         private readonly DirectInput directInput = new();
 
-        public delegate IntPtr DeviceChangeDelegate(IntPtr inputDeviceManager);
-        private readonly Hook<DeviceChangeDelegate> deviceChangeDelegateHook;
+        public delegate nint DeviceChangeDelegate(nint inputDeviceManager);
 
-        public Plugin(
-            [RequiredVersion("1.0")] SigScanner sigScanner)
+        private IPluginLog pluginLog { get; init; }
+
+        // function that is called from WndProc when a device change happens
+        [Signature("48 83 EC 38 0F B6 81", DetourName = nameof(DeviceChangeDetour))]
+        private readonly Hook<DeviceChangeDelegate> deviceChangeDelegateHook = null!;
+
+        public Plugin(IPluginLog pluginLog, IGameInteropProvider gameInteropProvider)
         {
+            this.pluginLog = pluginLog;
+
             this.controllerCount = this.GetControllerCount();
 
-            // function that is called from WndProc when a device change happens
-            // plugin can't work without this sig so use ScanText instead of TryScanText
-            var renderAddress = sigScanner.ScanText("48 83 EC 38 0F B6 81");
-            this.deviceChangeDelegateHook = Hook<DeviceChangeDelegate>.FromAddress(renderAddress, this.DeviceChangeDetour);
+            gameInteropProvider.InitializeFromAttributes(this);
+
             this.deviceChangeDelegateHook.Enable();
         }
 
-        private unsafe IntPtr DeviceChangeDetour(IntPtr inputDeviceManager)
+        private unsafe nint DeviceChangeDetour(nint inputDeviceManager)
         {
             // Only call the original if the number of connected controllers
             // actually changed since the last time the hook was called
             int newControllerCount = this.GetControllerCount();
             if (newControllerCount != this.controllerCount)
             {
-                PluginLog.Information($"{Math.Abs(newControllerCount - this.controllerCount)} devices {(newControllerCount > this.controllerCount ? "added" : "removed")}, polling started");
+                this.pluginLog.Information($"{Math.Abs(newControllerCount - this.controllerCount)} device(s) {(newControllerCount > this.controllerCount ? "added" : "removed")}, polling started");
                 this.controllerCount = newControllerCount;
 
-                return this.deviceChangeDelegateHook!.Original(inputDeviceManager);
+                return this.deviceChangeDelegateHook.Original(inputDeviceManager);
             }
-            PluginLog.Information("No input devices changed, polling skipped");
+            this.pluginLog.Information("No input devices changed, polling skipped");
 
-            return IntPtr.Zero;
+            return nint.Zero;
         }
 
         private int GetControllerCount()
@@ -54,7 +61,6 @@ namespace DeviceChangeFix
 
         public void Dispose()
         {
-            this.deviceChangeDelegateHook.Disable();
             this.deviceChangeDelegateHook.Dispose();
             this.directInput.Dispose();
         }
