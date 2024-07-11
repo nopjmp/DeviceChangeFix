@@ -1,13 +1,9 @@
-﻿using Dalamud.Game;
-using Dalamud.Hooking;
-using Dalamud.IoC;
-using Dalamud.Logging;
+﻿using Dalamud.Hooking;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System;
 using SharpDX.DirectInput;
 using Dalamud.Utility.Signatures;
-using System.Diagnostics.CodeAnalysis;
 
 namespace DeviceChangeFix
 {
@@ -23,7 +19,7 @@ namespace DeviceChangeFix
         private IPluginLog pluginLog { get; init; }
 
         // function that is called from WndProc when a device change happens
-        [Signature("48 83 EC 38 0F B6 81", DetourName = nameof(DeviceChangeDetour))]
+        [Signature("B8 01 00 00 00 F0 0F C1 81 C8 4E 00 00 C3", DetourName = nameof(DeviceChangeDetour))]
         private readonly Hook<DeviceChangeDelegate> deviceChangeDelegateHook = null!;
 
         public Plugin(IPluginLog pluginLog, IGameInteropProvider gameInteropProvider)
