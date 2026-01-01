@@ -1,16 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/13.0.0">
+<Project Sdk="Dalamud.NET.Sdk/14.0.0">
     <PropertyGroup>
         <Authors>nopjmp, Jessidhia, PGGB</Authors>
-        <Version>2.0.8</Version>
+        <Version>2.0.8.1</Version>
         <Description>An FF14-Plugin that stops controller input from freezing on device changes</Description>
         <PackageProjectUrl>https://github.com/Jessidhia/DeviceChangeFix</PackageProjectUrl>
         <PackageLicenseExpression></PackageLicenseExpression>
         <IsPackable>false</IsPackable>
-        <TargetFramework>net9.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
+        <Content Include="global.json" />
         <Content Include="icon.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
