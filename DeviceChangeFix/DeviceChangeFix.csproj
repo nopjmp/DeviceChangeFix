@@ -2,7 +2,7 @@
 <Project Sdk="Dalamud.NET.Sdk/14.0.1">
     <PropertyGroup>
         <Authors>nopjmp, Jessidhia, PGGB</Authors>
-        <Version>2.0.8.2</Version>
+        <Version>3.0.0</Version>
         <Description>An FF14-Plugin that stops controller input from freezing on device changes</Description>
         <PackageProjectUrl>https://github.com/Jessidhia/DeviceChangeFix</PackageProjectUrl>
         <PackageLicenseExpression></PackageLicenseExpression>
@@ -16,9 +16,5 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
     </ItemGroup>
 </Project>
