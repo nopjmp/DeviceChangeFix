@@ -21,22 +21,10 @@ namespace DeviceChangeFix
         private delegate nint WndProcDelegate(nint hWnd, uint msg, nuint wParam, nint lParam);
 
         private static readonly Guid GUID_DEVINTERFACE_HID = new("4D1E55B2-F16F-11CF-88CB-001111000030");
-        //private static readonly Guid GUID_XUSB_INTERFACE_CLASS =
-        //    new Guid(
-        //        0xEC87F1E3,
-        //        0xC13B,
-        //        0x4100,
-        //        0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB
-        //    );
-        //XXX: these are probably wrong for our purposes
-        //private static readonly Guid GUID_DEVINTERFACE_KEYBOARD =
-        //private static readonly Guid GUID_DEVINTERFACE_MOUSE =
-        //private static readonly Guid GUID_BTHPORT_DEVICE_INTERFACE =
-        //private static readonly Guid GUID_DEVCLASS_BLUETOOTH = new("E0CBF06C-CD8B-4647-BB8A-263B43F0F974");
 
         private IPluginLog pluginLog { get; init; }
 
-        private bool registeredUsbNotification = false;
+        private bool deviceNotificationRegistered = false;
 
         // WinProc function that processes Windows messages
         [Signature("40 55 53 56 57 41 54 41 56 48 8D 6C 24 ?? 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 45 E0", DetourName = nameof(WndProcDetour))]
@@ -54,7 +42,7 @@ namespace DeviceChangeFix
         {
             if (msg == WM_DEVICECHANGE)
             {
-                this.pluginLog.Debug("WM_DEVICECHANGE received. wParam: {0:X}, lParam: {1:X}", wParam, lParam);
+                this.pluginLog.Debug("WM_DEVICECHANGE received. wParam: 0x{0:X}, lParam: 0x{1:X}", wParam, lParam);
                 switch ((uint)wParam)
                 {
                     case DBT_DEVNODES_CHANGED:
@@ -70,6 +58,7 @@ namespace DeviceChangeFix
                             DEV_BROADCAST_DEVICEINTERFACE_W* pDevW = (DEV_BROADCAST_DEVICEINTERFACE_W*)pDevHdr;
                             Guid interfaceGuid = pDevW->dbcc_classguid;
 
+                            // Check if the device interface GUID matches HID, MSDN states we can get port devices by default
                             if (interfaceGuid == GUID_DEVINTERFACE_HID)
                             {
                                 ignore = false; // Relevant device change detected
@@ -78,7 +67,7 @@ namespace DeviceChangeFix
                             else
                             {
                                 // Log the device interface GUID for debugging purposes
-                                this.pluginLog.Information($"Device change detected. Interface GUID: {interfaceGuid}");
+                                this.pluginLog.Debug($"Unknown device change detected. Interface GUID: {interfaceGuid}");
                             }
                         }
 
@@ -94,9 +83,9 @@ namespace DeviceChangeFix
             else
             {
                 // HACK: can't get hWnd at initialization, so register on first non-devicechange message
-                if (!this.registeredUsbNotification)
+                if (!this.deviceNotificationRegistered)
                 {
-                    this.registeredUsbNotification = true;
+                    this.deviceNotificationRegistered = true;
                     this.pluginLog.Debug("Registering for device notifications.");
                     DeviceNotification.Register(hWnd, DBT_DEVTYP_DEVICEINTERFACE, GUID_DEVINTERFACE_HID);
                 }
