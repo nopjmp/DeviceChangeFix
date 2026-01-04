@@ -55,7 +55,7 @@ namespace DeviceChangeFix
 
                         if (pDevHdr != null && pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                         {   
-                            DEV_BROADCAST_DEVICEINTERFACE_W* pDevW = (DEV_BROADCAST_DEVICEINTERFACE_W*)pDevHdr;
+                            DEV_BROADCAST_DEVICEINTERFACE* pDevW = (DEV_BROADCAST_DEVICEINTERFACE*)pDevHdr;
                             Guid interfaceGuid = pDevW->dbcc_classguid;
 
                             // Check if the device interface GUID matches HID, MSDN states we can get port devices by default

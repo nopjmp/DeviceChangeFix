@@ -14,16 +14,16 @@ namespace DeviceChangeFix
         /// <param name="windowHandle">Handle to the window receiving notifications.</param>
         public static void Register(IntPtr windowHandle, uint deviceType, Guid classGuid)
         {
-            DEV_BROADCAST_DEVICEINTERFACE_W dbi = new DEV_BROADCAST_DEVICEINTERFACE_W
+            DEV_BROADCAST_DEVICEINTERFACE dbi = new DEV_BROADCAST_DEVICEINTERFACE
             {
                 dbcc_devicetype = deviceType,
                 dbcc_reserved = 0,
                 dbcc_classguid = classGuid,
-                dbcc_size = (uint)Marshal.SizeOf<DEV_BROADCAST_DEVICEINTERFACE_W>(),
+                dbcc_size = (uint)Marshal.SizeOf<DEV_BROADCAST_DEVICEINTERFACE>(),
                 dbcc_name = 0
             };
 
-            IntPtr buffer = Marshal.AllocHGlobal(Marshal.SizeOf<DEV_BROADCAST_DEVICEINTERFACE_W>());
+            IntPtr buffer = Marshal.AllocHGlobal(Marshal.SizeOf<DEV_BROADCAST_DEVICEINTERFACE>());
             Marshal.StructureToPtr(dbi, buffer, true);
 
             notificationHandle = RegisterDeviceNotification(windowHandle, buffer, 0);

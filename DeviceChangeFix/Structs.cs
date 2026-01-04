@@ -13,8 +13,8 @@ namespace DeviceChangeFix
         public uint dbch_reserved;
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal unsafe struct DEV_BROADCAST_DEVICEINTERFACE_W
+    [StructLayout(LayoutKind.Sequential)]
+    internal unsafe struct DEV_BROADCAST_DEVICEINTERFACE
     {
         public uint dbcc_size;
         public uint dbcc_devicetype;
