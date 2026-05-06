@@ -23,10 +23,7 @@ namespace DeviceChangeFix
                 dbcc_name = string.Empty
             };
 
-            IntPtr buffer = Marshal.AllocHGlobal(Marshal.SizeOf<DEV_BROADCAST_DEVICEINTERFACE>());
-            Marshal.StructureToPtr(dbi, buffer, true);
-
-            notificationHandle = RegisterDeviceNotification(windowHandle, buffer, 0);
+            notificationHandle = RegisterDeviceNotification(windowHandle, dbi, 0);
         }
 
         /// <summary>
@@ -39,8 +36,8 @@ namespace DeviceChangeFix
             notificationHandle = IntPtr.Zero;
         }
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr RegisterDeviceNotification(IntPtr recipient, IntPtr notificationFilter, int flags);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr RegisterDeviceNotification(IntPtr recipient, in DEV_BROADCAST_DEVICEINTERFACE notificationFilter, int flags);
 
         [DllImport("user32.dll")]
         private static extern bool UnregisterDeviceNotification(IntPtr handle);
