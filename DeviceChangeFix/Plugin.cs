@@ -10,7 +10,7 @@ namespace DeviceChangeFix
     public sealed class Plugin : IDalamudPlugin
     {
         public string Name => "DeviceChangeFix";
-        
+
         private const uint WM_DEVICECHANGE = 0x0219;
         private const uint DBT_DEVNODES_CHANGED = 0x0007;
         private const uint DBT_DEVICEARRIVAL = 0x8000;
@@ -50,32 +50,37 @@ namespace DeviceChangeFix
                     case DBT_DEVICEARRIVAL:
                     case DBT_DEVICEREMOVECOMPLETE:
                         bool ignore = true;
-                        // Correct way to interpret lParam as a pointer to DEV_BROADCAST_HDR
                         DEV_BROADCAST_HDR* pDevHdr = (DEV_BROADCAST_HDR*)lParam;
-
                         if (pDevHdr != null && pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
-                        {   
-                            DEV_BROADCAST_DEVICEINTERFACE* pDevW = (DEV_BROADCAST_DEVICEINTERFACE*)pDevHdr;
-                            Guid interfaceGuid = pDevW->dbcc_classguid;
+                        {
+                            Marshal.PtrToStructure<DEV_BROADCAST_DEVICEINTERFACE>(lParam);
+                            DEV_BROADCAST_DEVICEINTERFACE devW = Marshal.PtrToStructure<DEV_BROADCAST_DEVICEINTERFACE>(lParam);
+                            Guid interfaceGuid = devW.dbcc_classguid;
+                            string deviceName = devW.dbcc_name ?? "Unknown";
 
                             // Check if the device interface GUID matches HID, MSDN states we can get port devices by default
-                            if (interfaceGuid == GUID_DEVINTERFACE_HID)
+                            if (interfaceGuid == GUID_DEVINTERFACE_HID
+                                && (
+                                       deviceName.Contains("IG_", StringComparison.Ordinal) // XInput
+                                    || deviceName.Contains("054c", StringComparison.Ordinal) // Sony
+                                )
+                                && !deviceName.Contains(@"\kbd", StringComparison.Ordinal)) // Special K ignores these
                             {
                                 ignore = false; // Relevant device change detected
-                                this.pluginLog.Information($"HID Device change detected. Interface GUID: {interfaceGuid}");
+                                pluginLog.Information($"XInput Device change detected. Interface: {deviceName}");
                             }
                             else
                             {
                                 // Log the device interface GUID for debugging purposes
-                                this.pluginLog.Debug($"Unknown device change detected. Interface GUID: {interfaceGuid}");
+                                pluginLog.Debug($"Unknown device change detected. Interface: {deviceName}");
                             }
                         }
 
                         if (!ignore)
                         {
                             // force a poll on device arrival/removal in original handler
-                            this.pluginLog.Information($"Processing relevant device change notification.");
-                            return this.wndProcHook.Original(hWnd, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, nint.Zero);
+                            pluginLog.Information($"Processing relevant device change notification.");
+                            return wndProcHook.Original(hWnd, WM_DEVICECHANGE, DBT_DEVNODES_CHANGED, nint.Zero);
                         }
                         return nint.Zero;
                 }
