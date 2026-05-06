@@ -20,7 +20,7 @@ namespace DeviceChangeFix
                 dbcc_reserved = 0,
                 dbcc_classguid = classGuid,
                 dbcc_size = (uint)Marshal.SizeOf<DEV_BROADCAST_DEVICEINTERFACE>(),
-                dbcc_name = 0
+                dbcc_name = string.Empty
             };
 
             IntPtr buffer = Marshal.AllocHGlobal(Marshal.SizeOf<DEV_BROADCAST_DEVICEINTERFACE>());
