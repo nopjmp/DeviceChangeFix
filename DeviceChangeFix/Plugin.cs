@@ -53,7 +53,6 @@ namespace DeviceChangeFix
                         DEV_BROADCAST_HDR* pDevHdr = (DEV_BROADCAST_HDR*)lParam;
                         if (pDevHdr != null && pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                         {
-                            Marshal.PtrToStructure<DEV_BROADCAST_DEVICEINTERFACE>(lParam);
                             DEV_BROADCAST_DEVICEINTERFACE devW = Marshal.PtrToStructure<DEV_BROADCAST_DEVICEINTERFACE>(lParam);
                             Guid interfaceGuid = devW.dbcc_classguid;
                             string deviceName = devW.dbcc_name ?? "Unknown";
