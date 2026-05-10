@@ -2,7 +2,7 @@
 <Project Sdk="Dalamud.NET.Sdk/15.0.0">
     <PropertyGroup>
         <Authors>nopjmp, Jessidhia, PGGB</Authors>
-        <Version>3.1.1</Version>
+        <Version>3.1.1.1</Version>
         <Description>An FF14-Plugin that stops controller input from freezing on device changes</Description>
         <PackageProjectUrl>https://github.com/nopjmp/DeviceChangeFix</PackageProjectUrl>
         <PackageLicenseExpression></PackageLicenseExpression>

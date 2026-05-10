@@ -59,9 +59,10 @@ namespace DeviceChangeFix
 
                             // Check if the device interface GUID matches HID, MSDN states we can get port devices by default
                             if (interfaceGuid == GUID_DEVINTERFACE_HID
+                                // TODO: make this a configuration option or something
                                 && (
                                        deviceName.Contains("IG_", StringComparison.Ordinal) // XInput
-                                    || deviceName.Contains("054c", StringComparison.Ordinal) // Sony
+                                    || deviceName.Contains("054c", StringComparison.OrdinalIgnoreCase) // Sony
                                 )
                                 && !deviceName.Contains(@"\kbd", StringComparison.Ordinal)) // Special K ignores these
                             {
