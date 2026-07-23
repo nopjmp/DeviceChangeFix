@@ -1,26 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace DeviceChangeFix
 {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct DEV_BROADCAST_HDR
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RAWINPUTDEVICELIST
     {
-        public uint dbch_size;
-        public uint dbch_devicetype;
-        public uint dbch_reserved;
+        public nint hDevice;
+        public uint dwType;
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct DEV_BROADCAST_DEVICEINTERFACE
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RID_DEVICE_INFO_HID
     {
-        public uint dbcc_size;
-        public uint dbcc_devicetype;
-        public uint dbcc_reserved;
-        public Guid dbcc_classguid;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst=255)]
-        public string dbcc_name;
+        public uint dwVendorId;
+        public uint dwProductId;
+        public uint dwVersionNumber;
+        public ushort usUsagePage;
+        public ushort usUsage;
+    }
+
+    // Union: the mouse/keyboard variants are not needed, but the keyboard variant is
+    // the largest (24 bytes), so pad the total to the native 32-byte size.
+    [StructLayout(LayoutKind.Explicit, Size = 32)]
+    internal struct RID_DEVICE_INFO
+    {
+        [FieldOffset(0)] public uint cbSize;
+        [FieldOffset(4)] public uint dwType;
+        [FieldOffset(8)] public RID_DEVICE_INFO_HID hid;
     }
 }
